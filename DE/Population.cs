@@ -42,10 +42,6 @@
             {
                 Mutants[i] = Individuals[i].Crossover(this.Mutants[i], Cr, random, dimensions);
             }
-            //Parallel.For(0, Individuals.Length, i =>
-            //{
-            //    Mutants[i] = Individuals[i].Crossover(this.Mutants[i], Cr, random, dimensions);
-            //});
         }
 
         public void EvaluateFitness(OptimizationFunction function, int dimensions)
@@ -62,7 +58,7 @@
             EvaluateFitness(function, dimensions);
             for (int i = 0; i < Individuals.Length; i++)
             {
-                double mutantFitness = Mutants[i].Evaluate(function, dimensions);
+                double mutantFitness = function.EvaluateWithPenalty(Mutants[i].Values, dimensions);
                 if (mutantFitness < fitnessValues[i])
                 {
                     Individuals[i] = Mutants[i];
@@ -70,41 +66,6 @@
                 }
             }
         }
-
-        //public void Selection(OptimizationFunction function, int dimensions)
-        //{
-        //    for (int i = 0; i < Individuals.Length; i++)
-        //    {
-        //        if (Mutants[i].Evaluate(function, dimensions) < this.Individuals[i].Evaluate(function, dimensions))
-        //        {
-        //            Individuals[i] = Mutants[i];
-        //        }
-        //    }
-        //    //Parallel.For(0, Individuals.Length, i =>
-        //    //{
-        //    //    if (Mutants[i].Evaluate(function, dimensions) < Individuals[i].Evaluate(function, dimensions))
-        //    //    {
-        //    //        Individuals[i] = Mutants[i];
-        //    //    }
-        //    //});
-        //}
-
-        //public Individual GetBestIndividual(OptimizationFunction function, int dimensions)
-        //{
-        //    Individual best = Individuals[0];
-        //    double bestValue = best.Evaluate(function, dimensions);
-
-        //    foreach (var individual in Individuals)
-        //    {
-        //        double value = individual.Evaluate(function, dimensions);
-        //        if (value < bestValue)
-        //        {
-        //            best = individual;
-        //            bestValue = value;
-        //        }
-        //    }
-        //    return best;
-        //}
 
         public Individual GetBestIndividual()
         {
@@ -121,5 +82,45 @@
             }
             return Individuals[bestIndex];
         }
+
+        public double CalculateAverageViolation(OptimizationFunction function, int dimensions)
+        {
+            double totalViolation = 0;
+            foreach (var individual in Individuals)
+            {
+                double violation = function.ConstraintViolation(individual.Values, dimensions);
+                totalViolation += violation;
+            }
+            return totalViolation / Individuals.Length;
+        }
+
+        public double GetBestViolation(OptimizationFunction function, int dimensions)
+        {
+            double bestViolation = double.MaxValue;
+            foreach (var individual in Individuals)
+            {
+                double violation = function.ConstraintViolation(individual.Values, dimensions);
+                if (violation < bestViolation)
+                {
+                    bestViolation = violation;
+                }
+            }
+            return bestViolation;
+        }
+
+        public double GetSatisfiedPercentage(OptimizationFunction function, int dimensions, double tolerance = 1e-6)
+        {
+            int satisfiedCount = 0;
+            foreach (var individual in Individuals)
+            {
+                double violation = function.ConstraintViolation(individual.Values, dimensions);
+                if (violation <= tolerance)
+                {
+                    satisfiedCount++;
+                }
+            }
+            return (double)satisfiedCount / Individuals.Length * 100;
+        }
+
     }
 }

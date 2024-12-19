@@ -15,19 +15,29 @@ namespace DE
         public double TargetValue { get; private set; }
 
         private Func<double[], int, double> evaluationFunction;
+        private Func<double[], int, double> constraintFunction;
 
-        private OptimizationFunction(string name, double lowerBound, double upperBound, double targetValue, Func<double[], int, double> evaluationFunction)
+
+        private OptimizationFunction(string name, double lowerBound, double upperBound, double targetValue, Func<double[], int, double> evaluationFunction, Func<double[], int, double> constraintFunction = null)
         {
             Name = name;
             LowerBound = lowerBound;
             UpperBound = upperBound;
             TargetValue = targetValue;
             this.evaluationFunction = evaluationFunction;
+            this.constraintFunction = constraintFunction;
         }
 
-        public double Evaluate(double[] values, int dimensions)
+        public double EvaluateWithPenalty(double[] values, int dimensions)
         {
-            return evaluationFunction(values, dimensions);
+            const double penaltyFactor = 1010;
+            double penalty = 0;
+            if (constraintFunction != null)
+            {
+                double constraintViolation = constraintFunction(values, dimensions);
+                penalty = penaltyFactor * constraintViolation * constraintViolation;
+            }
+            return evaluationFunction(values, dimensions) + penalty;
         }
 
         public static OptimizationFunction GetFunction(int functionChoice, int dimensions)
@@ -44,7 +54,8 @@ namespace DE
                 8 => new OptimizationFunction("SumSquares", -10, 10, 0.0, SumSquares),
                 9 => new OptimizationFunction("SumOfDifferentPowers", -1, 1, 0.0, SumOfDifferentPowers),
                 10 => new OptimizationFunction("Ackley", -32.768, 32.768, 0.0, Ackley),
-                _ => throw new ArgumentException("Nieprawidłowy wybór funkcji!")
+                11 => new OptimizationFunction("G03", 0, 1, -1.0005, G03, G03Constraint),
+            _ => throw new ArgumentException("Nieprawidłowy wybór funkcji!")
             };
         }
 
@@ -154,6 +165,36 @@ namespace DE
             }
             return -a * Math.Exp(-b * Math.Sqrt(sum1/dimensions)) - Math.Exp(sum2/dimensions) + a + Math.E;
         }
+
+        private static double G03(double[] values, int dimensions)
+        {
+            double d_prod = 1;
+            foreach (var x in values)
+            {
+                d_prod *= x;
+            }
+            return -Math.Pow(Math.Sqrt(dimensions), dimensions) * d_prod;
+        }
+
+        private static double G03Constraint(double[] values, int dimensions)
+        {
+            double sum = 0;
+            foreach (var x in values)
+            {
+                sum += x * x;
+            }
+            return sum - 1;
+        }
+
+        public double ConstraintViolation(double[] values, int dimensions)
+        {
+            if (constraintFunction != null)
+            {
+                return Math.Abs(constraintFunction(values, dimensions));
+            }
+            return 0;
+        }
+
     }
 }
 
