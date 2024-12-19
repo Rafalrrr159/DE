@@ -1,22 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-
-namespace DE
+﻿namespace DE
 {
     class Population
     {
         public Individual[] Individuals { get; private set; }
         public Individual[] Mutants { get; private set; }
         private Random random;
+        private double[] fitnessValues;
 
-        public Population(int size, int dimensions, double lowerBound, double upperBound, Random random)
+        public Population(int size, int dimensions, double lowerBound, double upperBound)
         {
-            this.random = random;
+            this.random = new Random(Guid.NewGuid().GetHashCode());
             Initialize(size, dimensions, lowerBound, upperBound);
         }
 
@@ -35,78 +28,98 @@ namespace DE
             }
         }
 
-        //public void Mutate(double F, int variantChoice, OptimizationFunction function)
-        //{
-        //    for (int i = 0; i < Individuals.Length; i++)
-        //    {
-        //        Mutants[i] = Individuals[i].Mutate(this, i, F, variantChoice, function, random);
-        //    }
-        //    //Parallel.For(0, Individuals.Length, i =>
-        //    //{
-        //    //    Mutants[i] = Individuals[i].Mutate(this, i, F, variantChoice, function, random);
-        //    //});
-
-        //}
-
         public void Mutate(Variant variant, double F, OptimizationFunction function)
         {
-            //for (int i = 0; i < Individuals.Length; i++)
-            //{
-            //    Mutants[i] = Individuals[i].Mutate(this, i, variant, F, function, random);
-            //}
-            Parallel.For(0, Individuals.Length, i =>
+            for (int i = 0; i < Individuals.Length; i++)
             {
                 Mutants[i] = Individuals[i].Mutate(this, i, variant, F, function, random);
-            });
+            }
         }
 
-        public void Crossover(double Cr)
+        public void Crossover(double Cr, int dimensions)
         {
-            //for (int i = 0; i < Individuals.Length; i++)
-            //{
-            //    Mutants[i] = Individuals[i].Crossover(this.Mutants[i], Cr, random);
-            //}
-            Parallel.For(0, Individuals.Length, i =>
+            for (int i = 0; i < Individuals.Length; i++)
             {
-                Mutants[i] = Individuals[i].Crossover(this.Mutants[i], Cr, random);
-            });
+                Mutants[i] = Individuals[i].Crossover(this.Mutants[i], Cr, random, dimensions);
+            }
+            //Parallel.For(0, Individuals.Length, i =>
+            //{
+            //    Mutants[i] = Individuals[i].Crossover(this.Mutants[i], Cr, random, dimensions);
+            //});
+        }
 
+        public void EvaluateFitness(OptimizationFunction function, int dimensions)
+        {
+            fitnessValues = new double[Individuals.Length];
+            for (int i = 0; i < Individuals.Length; i++)
+            {
+                fitnessValues[i] = Individuals[i].Evaluate(function, dimensions);
+            }
         }
 
         public void Selection(OptimizationFunction function, int dimensions)
         {
-            //for (int i = 0; i < Individuals.Length; i++)
-            //{
-            //    if (Mutants[i].Evaluate(function, dimensions) < this.Individuals[i].Evaluate(function, dimensions))
-            //    {
-            //        Individuals[i] = Mutants[i];
-            //    }
-            //}
-            Parallel.For(0, Individuals.Length, i =>
+            EvaluateFitness(function, dimensions);
+            for (int i = 0; i < Individuals.Length; i++)
             {
-                if (Mutants[i].Evaluate(function, dimensions) < Individuals[i].Evaluate(function, dimensions))
+                double mutantFitness = Mutants[i].Evaluate(function, dimensions);
+                if (mutantFitness < fitnessValues[i])
                 {
                     Individuals[i] = Mutants[i];
-                }
-            });
-
-        }
-
-        public Individual GetBestIndividual(OptimizationFunction function, int dimensions)
-        {
-            Individual best = Individuals[0];
-            double bestValue = best.Evaluate(function, dimensions);
-
-            foreach (var individual in Individuals)
-            {
-                double value = individual.Evaluate(function, dimensions);
-                if (value < bestValue)
-                {
-                    best = individual;
-                    bestValue = value;
+                    fitnessValues[i] = mutantFitness;
                 }
             }
-            return best;
+        }
+
+        //public void Selection(OptimizationFunction function, int dimensions)
+        //{
+        //    for (int i = 0; i < Individuals.Length; i++)
+        //    {
+        //        if (Mutants[i].Evaluate(function, dimensions) < this.Individuals[i].Evaluate(function, dimensions))
+        //        {
+        //            Individuals[i] = Mutants[i];
+        //        }
+        //    }
+        //    //Parallel.For(0, Individuals.Length, i =>
+        //    //{
+        //    //    if (Mutants[i].Evaluate(function, dimensions) < Individuals[i].Evaluate(function, dimensions))
+        //    //    {
+        //    //        Individuals[i] = Mutants[i];
+        //    //    }
+        //    //});
+        //}
+
+        //public Individual GetBestIndividual(OptimizationFunction function, int dimensions)
+        //{
+        //    Individual best = Individuals[0];
+        //    double bestValue = best.Evaluate(function, dimensions);
+
+        //    foreach (var individual in Individuals)
+        //    {
+        //        double value = individual.Evaluate(function, dimensions);
+        //        if (value < bestValue)
+        //        {
+        //            best = individual;
+        //            bestValue = value;
+        //        }
+        //    }
+        //    return best;
+        //}
+
+        public Individual GetBestIndividual()
+        {
+            int bestIndex = 0;
+            double bestValue = fitnessValues[0];
+
+            for (int i = 1; i < fitnessValues.Length; i++)
+            {
+                if (fitnessValues[i] < bestValue)
+                {
+                    bestIndex = i;
+                    bestValue = fitnessValues[i];
+                }
+            }
+            return Individuals[bestIndex];
         }
     }
 }

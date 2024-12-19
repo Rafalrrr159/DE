@@ -105,12 +105,12 @@ namespace DE
             return new Individual(mutantValues);
         }
 
-        public Individual Crossover(Individual target, double Cr, Random random)
+        public Individual Crossover(Individual target, double Cr, Random random, int dimensions)
         {
             double[] trialValues = new double[Values.Length];
             for (int i = 0; i < Values.Length; i++)
             {
-                if (random.NextDouble() < Cr)
+                if (random.NextDouble() < Cr || i+1 == dimensions)
                 {
                     trialValues[i] = target.Values[i];
                 }

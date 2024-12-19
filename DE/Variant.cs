@@ -62,7 +62,7 @@ namespace DE
             int dimensions = population.Individuals[0].Values.Length;
 
             int r0, r1;
-            Individual best = population.GetBestIndividual(function, dimensions);
+            Individual best = population.GetBestIndividual();
 
             do { r0 = random.Next(S); } while (r0 == currentIndex);
             do { r1 = random.Next(S); } while (r1 == r0 || r1 == currentIndex);
@@ -125,7 +125,7 @@ namespace DE
             int dimensions = population.Individuals[0].Values.Length;
 
             int r0, r1, r2, r3;
-            Individual best = population.GetBestIndividual(function, dimensions);
+            Individual best = population.GetBestIndividual();
 
             do { r0 = random.Next(S); } while (r0 == currentIndex);
             do { r1 = random.Next(S); } while (r1 == r0 || r1 == currentIndex);
