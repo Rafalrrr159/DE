@@ -58,7 +58,7 @@
             EvaluateFitness(function, dimensions);
             for (int i = 0; i < Individuals.Length; i++)
             {
-                double mutantFitness = function.EvaluateWithPenalty(Mutants[i].Values, dimensions);
+                double mutantFitness = Mutants[i].Evaluate(function, dimensions);
                 if (mutantFitness < fitnessValues[i])
                 {
                     Individuals[i] = Mutants[i];
@@ -82,45 +82,5 @@
             }
             return Individuals[bestIndex];
         }
-
-        public double CalculateAverageViolation(OptimizationFunction function, int dimensions)
-        {
-            double totalViolation = 0;
-            foreach (var individual in Individuals)
-            {
-                double violation = function.ConstraintViolation(individual.Values, dimensions);
-                totalViolation += violation;
-            }
-            return totalViolation / Individuals.Length;
-        }
-
-        public double GetBestViolation(OptimizationFunction function, int dimensions)
-        {
-            double bestViolation = double.MaxValue;
-            foreach (var individual in Individuals)
-            {
-                double violation = function.ConstraintViolation(individual.Values, dimensions);
-                if (violation < bestViolation)
-                {
-                    bestViolation = violation;
-                }
-            }
-            return bestViolation;
-        }
-
-        public double GetSatisfiedPercentage(OptimizationFunction function, int dimensions, double tolerance = 1e-6)
-        {
-            int satisfiedCount = 0;
-            foreach (var individual in Individuals)
-            {
-                double violation = function.ConstraintViolation(individual.Values, dimensions);
-                if (violation <= tolerance)
-                {
-                    satisfiedCount++;
-                }
-            }
-            return (double)satisfiedCount / Individuals.Length * 100;
-        }
-
     }
 }

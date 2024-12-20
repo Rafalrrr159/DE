@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace DE
+﻿namespace DE
 {
     class OptimizationFunction
     {
@@ -30,7 +23,7 @@ namespace DE
 
         public double EvaluateWithPenalty(double[] values, int dimensions)
         {
-            const double penaltyFactor = 1010;
+            const double penaltyFactor = 1020;
             double penalty = 0;
             if (constraintFunction != null)
             {
@@ -185,16 +178,6 @@ namespace DE
             }
             return sum - 1;
         }
-
-        public double ConstraintViolation(double[] values, int dimensions)
-        {
-            if (constraintFunction != null)
-            {
-                return Math.Abs(constraintFunction(values, dimensions));
-            }
-            return 0;
-        }
-
     }
 }
 

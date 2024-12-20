@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace DE
+﻿namespace DE
 {
     class Variant
     {
@@ -62,15 +56,15 @@ namespace DE
             int dimensions = population.Individuals[0].Values.Length;
 
             int r0, r1;
-            Individual best = population.GetBestIndividual();
+            int bestIndex = Array.IndexOf(population.Individuals, population.GetBestIndividual());
 
-            do { r0 = random.Next(S); } while (r0 == currentIndex);
-            do { r1 = random.Next(S); } while (r1 == r0 || r1 == currentIndex);
+            do { r0 = random.Next(S); } while (r0 == bestIndex || r0 == currentIndex);
+            do { r1 = random.Next(S); } while (r0 == bestIndex || r1 == r0 || r1 == currentIndex);
 
             double[] mutant = new double[dimensions];
             for (int i = 0; i < dimensions; i++)
             {
-                mutant[i] = best.Values[i] +
+                mutant[i] = population.Individuals[bestIndex].Values[i] +
                             F * (population.Individuals[r0].Values[i] - population.Individuals[r1].Values[i]);
                 mutant[i] = Math.Max(function.LowerBound, Math.Min(mutant[i], function.UpperBound));
             }
@@ -125,17 +119,17 @@ namespace DE
             int dimensions = population.Individuals[0].Values.Length;
 
             int r0, r1, r2, r3;
-            Individual best = population.GetBestIndividual();
+            int bestIndex = Array.IndexOf(population.Individuals, population.GetBestIndividual());
 
-            do { r0 = random.Next(S); } while (r0 == currentIndex);
-            do { r1 = random.Next(S); } while (r1 == r0 || r1 == currentIndex);
-            do { r2 = random.Next(S); } while (r2 == r0 || r2 == r1 || r2 == currentIndex);
-            do { r3 = random.Next(S); } while (r3 == r0 || r3 == r1 || r3 == r2 || r3 == currentIndex);
+            do { r0 = random.Next(S); } while (r0 == bestIndex || r0 == currentIndex);
+            do { r1 = random.Next(S); } while (r1 == r0 || r1 == bestIndex || r1 == currentIndex);
+            do { r2 = random.Next(S); } while (r2 == r0 || r2 == r1 || r2 == bestIndex || r2 == currentIndex);
+            do { r3 = random.Next(S); } while (r3 == r0 || r3 == r1 || r3 == r2 || r3 == bestIndex || r3 == currentIndex);
 
             double[] mutant = new double[dimensions];
             for (int i = 0; i < dimensions; i++)
             {
-                mutant[i] = best.Values[i] +
+                mutant[i] = population.Individuals[bestIndex].Values[i] +
                             F * (population.Individuals[r0].Values[i] - population.Individuals[r1].Values[i]) +
                             F * (population.Individuals[r2].Values[i] - population.Individuals[r3].Values[i]);
                 mutant[i] = Math.Max(function.LowerBound, Math.Min(mutant[i], function.UpperBound));
